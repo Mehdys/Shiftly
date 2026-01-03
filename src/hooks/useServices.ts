@@ -114,9 +114,13 @@ export function useCreateService() {
 
             // Step 2: Create admin intern
             log('useCreateService - Step 2: Creating admin intern...');
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('Vous devez être connecté pour créer un service.');
+
             const { data: intern, error: internError } = await supabase
                 .from('interns')
                 .insert({
+                    user_id: session.user.id,
                     service_id: service.id,
                     name: input.adminName,
                     is_admin: true,
@@ -210,9 +214,13 @@ export function useJoinService() {
 
             // Create intern
             log('useJoinService - Step 2: Creating intern...');
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('Vous devez être connecté pour rejoindre un service.');
+
             const { data: intern, error: internError } = await supabase
                 .from('interns')
                 .insert({
+                    user_id: session.user.id,
                     service_id: service.id,
                     name: input.name,
                     is_admin: false,

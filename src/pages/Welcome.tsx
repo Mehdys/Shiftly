@@ -1,9 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui';
-import { Calendar, Users, Sparkles } from 'lucide-react';
+import { Calendar, Users, Sparkles, LogIn } from 'lucide-react';
+import { useUserStore } from '@/stores';
 
 export default function Welcome() {
     const navigate = useNavigate();
+    const { session, currentUser } = useUserStore();
+
+    // Redirect to dashboard if fully logged in with profile
+    if (session && currentUser) {
+        navigate('/dashboard');
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 flex flex-col">
@@ -46,25 +53,36 @@ export default function Welcome() {
             </div>
 
             {/* Action Buttons */}
-            <div className="px-6 pb-8 safe-bottom space-y-3">
+            <Button
+                fullWidth
+                size="lg"
+                className="bg-white text-primary-700 hover:bg-primary-50"
+                onClick={() => navigate('/create')}
+            >
+                Créer un Service
+            </Button>
+            <Button
+                fullWidth
+                size="lg"
+                variant="outline"
+                className="border-white/30 text-white hover:bg-white/10"
+                onClick={() => navigate('/join')}
+            >
+                Rejoindre un Service
+            </Button>
+
+            {!session && (
                 <Button
                     fullWidth
                     size="lg"
-                    className="bg-white text-primary-700 hover:bg-primary-50"
-                    onClick={() => navigate('/create')}
+                    variant="ghost"
+                    className="text-white hover:bg-white/10"
+                    onClick={() => navigate('/login')}
                 >
-                    Créer un Service
+                    <LogIn className="w-5 h-5 mr-2" />
+                    Se connecter
                 </Button>
-                <Button
-                    fullWidth
-                    size="lg"
-                    variant="outline"
-                    className="border-white/30 text-white hover:bg-white/10"
-                    onClick={() => navigate('/join')}
-                >
-                    Rejoindre un Service
-                </Button>
-            </div>
+            )}
         </div>
     );
 }
