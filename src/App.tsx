@@ -52,6 +52,11 @@ function App() {
 
         checkSession();
 
+        // Safety timeout: force loading to false after 5s if still stuck
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 5000);
+
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log(`[App] Auth Event: ${event}`, session?.user?.email);
@@ -77,7 +82,10 @@ function App() {
             setIsLoading(false);
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            subscription.unsubscribe();
+            clearTimeout(timer);
+        };
     }, []);
 
 
