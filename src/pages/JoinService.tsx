@@ -15,7 +15,7 @@ export default function JoinService() {
     const [name, setName] = useState('');
 
     // Verify code before proceeding
-    const { data: serviceData, isLoading: isVerifying, error: verifyError } = useService(
+    const { data: serviceData, isLoading: isVerifying } = useService(
         step === 1 && joinCode.length === 6 ? joinCode : undefined
     );
 

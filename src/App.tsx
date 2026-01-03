@@ -7,10 +7,8 @@ import Dashboard from '@/pages/Dashboard';
 import GroupSelection from '@/pages/GroupSelection';
 import CreateGroup from '@/pages/CreateGroup';
 import Calendar from '@/pages/Calendar';
-import { useUserStore } from '@/stores/userStore';
 
 function App() {
-    const { currentUser } = useUserStore();
 
     return (
         <BrowserRouter>
