@@ -28,31 +28,35 @@ function App() {
     const { setSession, setIsLoading, setUser, setService } = useUserStore();
 
     useEffect(() => {
-        // Check for existing session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            if (session) {
-                // Fetch intern profile if session exists
-                supabase
-                    .from('interns')
-                    .select('*, service:services(*)')
-                    .eq('user_id', session.user.id)
-                    .single()
-                    .then(({ data: intern }) => {
-                        if (intern) {
-                            setUser(intern);
-                            setService(intern.service);
-                        }
-                        setIsLoading(false);
-                    });
-            } else {
+        const checkSession = async () => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                setSession(session);
+                if (session) {
+                    const { data: intern } = await supabase
+                        .from('interns')
+                        .select('*, service:services(*)')
+                        .eq('user_id', session.user.id)
+                        .single();
+                    if (intern) {
+                        setUser(intern);
+                        setService(intern.service);
+                    }
+                }
+            } catch (err) {
+                console.error('[App] Initial session check error:', err);
+            } finally {
                 setIsLoading(false);
             }
-        });
+        };
+
+        checkSession();
 
         // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log(`[App] Auth Event: ${event}`, session?.user?.email);
             setSession(session);
+
             if (session) {
                 const { data: intern } = await supabase
                     .from('interns')
@@ -68,10 +72,14 @@ function App() {
                 setUser(null);
                 setService(null);
             }
+
+            // Ensure loading is false after any auth state change processing
+            setIsLoading(false);
         });
 
         return () => subscription.unsubscribe();
     }, []);
+
 
     return (
         <BrowserRouter>

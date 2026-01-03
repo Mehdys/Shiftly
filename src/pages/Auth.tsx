@@ -11,12 +11,15 @@ export default function Auth() {
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const [success, setSuccess] = useState(false);
+
     const { signIn, signUp } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setSuccess(false);
 
         try {
             if (isLogin) {
@@ -28,16 +31,17 @@ export default function Auth() {
                 }
             } else {
                 await signUp.mutateAsync({ email, password, name });
-                // After signup Supabase usually signs in automatically or requires email verification
-                // For now, let's switch to login or wait for auto-sign in
-                setIsLogin(true);
+                setSuccess(true);
+                // We stay on registration but show success message
             }
         } catch (err) {
             console.error('[Auth] Error:', err);
+            // Error is handled by addToast in useAuth
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-primary-600 to-primary-800 flex flex-col items-center justify-center p-6">
@@ -71,64 +75,88 @@ export default function Auth() {
                     </div>
 
                     <CardContent className="p-8 pt-6">
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            {!isLogin && (
+                        {success ? (
+                            <div className="text-center space-y-4 py-4">
+                                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                                    <UserPlus className="w-6 h-6 text-green-600" />
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-900">Vérifiez vos emails</h2>
+                                <p className="text-gray-600">
+                                    Un lien de confirmation a été envoyé à <strong>{email}</strong>.
+                                    Veuillez cliquer sur le lien pour activer votre compte.
+                                </p>
+                                <Button
+                                    variant="outline"
+                                    fullWidth
+                                    onClick={() => {
+                                        setSuccess(false);
+                                        setIsLogin(true);
+                                    }}
+                                >
+                                    Retour à la connexion
+                                </Button>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                {!isLogin && (
+                                    <div className="space-y-1.5">
+                                        <label className="text-sm font-medium text-gray-700">Nom Complet</label>
+                                        <Input
+                                            placeholder="Dr. Jean Dupont"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                )}
+
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-gray-700">Nom Complet</label>
+                                    <label className="text-sm font-medium text-gray-700">Email Professionnel</label>
                                     <Input
-                                        placeholder="Dr. Jean Dupont"
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
+                                        type="email"
+                                        placeholder="jean.dupont@hopital.fr"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                         required
                                     />
                                 </div>
-                            )}
 
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-gray-700">Email Professionnel</label>
-                                <Input
-                                    type="email"
-                                    placeholder="jean.dupont@hopital.fr"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                />
-                            </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-medium text-gray-700">Mot de passe</label>
+                                    <Input
+                                        type="password"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                    />
+                                </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-gray-700">Mot de passe</label>
-                                <Input
-                                    type="password"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
-                            </div>
-
-                            <Button
-                                type="submit"
-                                fullWidth
-                                size="lg"
-                                disabled={loading}
-                                className="mt-6"
-                            >
-                                {loading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : isLogin ? (
-                                    <>
-                                        <LogIn className="w-5 h-5 mr-2" />
-                                        Se connecter
-                                    </>
-                                ) : (
-                                    <>
-                                        <UserPlus className="w-5 h-5 mr-2" />
-                                        Créer mon compte
-                                    </>
-                                )}
-                            </Button>
-                        </form>
+                                <Button
+                                    type="submit"
+                                    fullWidth
+                                    size="lg"
+                                    disabled={loading}
+                                    className="mt-6"
+                                >
+                                    {loading ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : isLogin ? (
+                                        <>
+                                            <LogIn className="w-5 h-5 mr-2" />
+                                            Se connecter
+                                        </>
+                                    ) : (
+                                        <>
+                                            <UserPlus className="w-5 h-5 mr-2" />
+                                            Créer mon compte
+                                        </>
+                                    )}
+                                </Button>
+                            </form>
+                        )}
                     </CardContent>
+
                 </Card>
 
                 <p className="text-center mt-8 text-primary-100 text-sm">

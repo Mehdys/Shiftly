@@ -37,6 +37,12 @@ export const useUserStore = create<UserState>()(
         }),
         {
             name: 'oncall-user-storage',
+            // Only persist currentUser and currentService
+            partialize: (state) => ({
+                currentUser: state.currentUser,
+                currentService: state.currentService,
+            }),
         }
     )
 );
+

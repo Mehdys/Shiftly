@@ -19,11 +19,15 @@ export function useAuth() {
                 email,
                 password,
                 options: {
-                    data: { full_name: name }
+                    data: { full_name: name },
+                    emailRedirectTo: `${window.location.origin}/login`,
                 }
             });
             if (error) throw error;
             return data;
+        },
+        onSuccess: () => {
+            addToast({ type: 'success', message: 'Inscription réussie ! Vérifiez vos emails pour confirmer votre compte.' });
         },
         onError: (error) => {
             addToast({ type: 'error', message: `Erreur d'inscription: ${error.message}` });
@@ -40,32 +44,38 @@ export function useAuth() {
             });
             if (error) throw error;
 
-            // After sign in, fetch the associated intern profile
+            // Fetch the associated intern profile
             const { data: intern, error: internError } = await supabase
                 .from('interns')
                 .select(`
-          *,
-          service:services(*)
-        `)
+                    *,
+                    service:services(*)
+                `)
                 .eq('user_id', data.user.id)
                 .single();
 
-            if (internError && internError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+            if (internError && internError.code !== 'PGRST116') {
                 console.error('[Auth] Error fetching intern profile', internError);
             }
 
             return { auth: data, intern };
         },
         onSuccess: (data) => {
+            // Note: setSession is handled by the onAuthStateChange listener in App.tsx
+            // but we update the intern profile here for immediate navigation feedback
             if (data.intern) {
                 setUser(data.intern);
                 setService(data.intern.service);
+                addToast({ type: 'success', message: 'Connexion réussie' });
+            } else {
+                addToast({ type: 'info', message: 'Compte créé, veuillez configurer votre profil' });
             }
         },
         onError: (error) => {
             addToast({ type: 'error', message: `Erreur de connexion: ${error.message}` });
         }
     });
+
 
     // Sign Out
     const signOut = () => {
